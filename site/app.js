@@ -159,6 +159,8 @@ function renderFooter() {
       ? el("p", {}, "RedLoader by ToniMacaroni, redistributed unmodified under the ",
           link(`${redloader.repo}/blob/main/LICENSE.md`, "Apache License 2.0"), ".")
       : null,
+    el("p", {}, "Free code signing provided by ", link("https://about.signpath.io", "SignPath.io"),
+      ", certificate by ", link("https://signpath.org", "SignPath Foundation"), "."),
     el("p", {}, `Mod list updated ${updated}.`),
   );
 }
