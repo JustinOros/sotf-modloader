@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Net.Http;
 using System.Reflection;
@@ -161,6 +162,56 @@ namespace SotfModLoader
                 var target = FullPath(gameDir, pkg.files[i].path);
                 Directory.CreateDirectory(Path.GetDirectoryName(target));
                 File.WriteAllBytes(target, data[i]);
+            }
+        }
+
+        public static async Task InstallZip(string gameDir, string url, string label, IProgress<string> progress)
+        {
+            byte[] data;
+            using (var response = await Http.GetAsync(url, HttpCompletionOption.ResponseHeadersRead))
+            {
+                response.EnsureSuccessStatusCode();
+                var total = response.Content.Headers.ContentLength ?? 0;
+                using (var stream = await response.Content.ReadAsStreamAsync())
+                using (var memory = new MemoryStream())
+                {
+                    var buffer = new byte[81920];
+                    long read = 0;
+                    var lastPercent = -1;
+                    int count;
+                    while ((count = await stream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+                    {
+                        memory.Write(buffer, 0, count);
+                        read += count;
+                        if (total > 0)
+                        {
+                            var percent = (int)(read * 100 / total);
+                            if (percent != lastPercent)
+                            {
+                                lastPercent = percent;
+                                progress.Report(label + ": downloading " + percent + "%");
+                            }
+                        }
+                    }
+                    data = memory.ToArray();
+                }
+            }
+
+            using (var zip = new ZipArchive(new MemoryStream(data), ZipArchiveMode.Read))
+            {
+                var entries = zip.Entries
+                    .Where(e => !string.IsNullOrEmpty(e.Name) && !e.FullName.EndsWith("/") && !e.FullName.EndsWith("\\"))
+                    .ToList();
+                for (var i = 0; i < entries.Count; i++)
+                {
+                    var entry = entries[i];
+                    progress.Report(label + ": writing " + (i + 1) + " of " + entries.Count + " files");
+                    var target = FullPath(gameDir, entry.FullName.Replace('\\', '/'));
+                    Directory.CreateDirectory(Path.GetDirectoryName(target));
+                    using (var input = entry.Open())
+                    using (var output = File.Create(target))
+                        input.CopyTo(output);
+                }
             }
         }
 

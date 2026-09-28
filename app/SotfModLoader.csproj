@@ -6,7 +6,7 @@
     <LangVersion>7.3</LangVersion>
     <AssemblyName>SotfModLoader</AssemblyName>
     <RootNamespace>SotfModLoader</RootNamespace>
-    <Version>1.0.0</Version>
+    <Version>1.1.0</Version>
     <Product>Sons of the Forest Mod Loader</Product>
     <Company>JustinOros</Company>
     <Authors>JustinOros</Authors>
@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <Reference Include="System.Drawing" />
+    <Reference Include="System.IO.Compression" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Windows.Forms" />

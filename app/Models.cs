@@ -26,6 +26,14 @@ namespace SotfModLoader
         public List<PackageFile> files { get; set; }
     }
 
+    public class RedLoaderVersion
+    {
+        public string version { get; set; }
+        public string downloadUrl { get; set; }
+        public string releaseUrl { get; set; }
+        public long size { get; set; }
+    }
+
     public class AppInfo
     {
         public string version { get; set; }
@@ -37,6 +45,7 @@ namespace SotfModLoader
         public string generated { get; set; }
         public string owner { get; set; }
         public Package redloader { get; set; }
+        public List<RedLoaderVersion> redloaderVersions { get; set; }
         public List<Package> mods { get; set; }
         public AppInfo app { get; set; }
     }

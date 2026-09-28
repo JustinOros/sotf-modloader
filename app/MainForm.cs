@@ -51,6 +51,7 @@ namespace SotfModLoader
         private string _kind;
         private bool _busy;
         private ModStatus _redloaderStatus;
+        private string _selectedRedLoader;
         private readonly Dictionary<string, ModStatus> _statuses = new Dictionary<string, ModStatus>();
 
         public MainForm()
@@ -124,8 +125,8 @@ namespace SotfModLoader
                 Padding = new Padding(S(18), S(12), S(14), S(12))
             };
             _folderPanel.Paint += PaintFolderPanel;
-            _folderName = new Label { AutoSize = true, Font = _rowTitleFont, ForeColor = Fog, BackColor = Bark };
-            _folderHelp = new Label { AutoSize = true, Font = _metaFont, ForeColor = Lichen, BackColor = Bark };
+            _folderName = new Label { AutoSize = false, Font = _rowTitleFont, ForeColor = Fog, BackColor = Bark };
+            _folderHelp = new Label { AutoSize = false, Font = _metaFont, ForeColor = Lichen, BackColor = Bark };
             _folderButton = MakeButton("Choose folder", Style.Secondary, (s, e) => ChooseFolder());
             _folderPanel.Controls.Add(_folderName);
             _folderPanel.Controls.Add(_folderHelp);
@@ -305,8 +306,8 @@ namespace SotfModLoader
             var width = _folderPanel.ClientSize.Width;
             _folderButton.Location = new Point(width - _folderButton.Width - S(14), S(14));
             var textWidth = Math.Max(S(160), _folderButton.Left - S(40));
-            _folderName.MaximumSize = new Size(textWidth, 0);
-            _folderHelp.MaximumSize = new Size(textWidth, 0);
+            RowPanel.Fit(_folderName, textWidth);
+            RowPanel.Fit(_folderHelp, textWidth);
             _folderName.Location = new Point(S(20), S(12));
             _folderHelp.Location = new Point(S(20), _folderName.Bottom + S(4));
             _folderPanel.Height = Math.Max(_folderHelp.Bottom, _folderButton.Bottom) + S(14);
@@ -394,25 +395,90 @@ namespace SotfModLoader
             return string.Join("     ", parts);
         }
 
+        private List<RedLoaderVersion> RedLoaderVersions()
+        {
+            var versions = _manifest.redloaderVersions;
+            if (versions != null && versions.Count > 0)
+                return versions;
+            var rl = _manifest.redloader;
+            return new List<RedLoaderVersion> { new RedLoaderVersion { version = rl.version, releaseUrl = rl.releaseUrl } };
+        }
+
+        private int SelectedRedLoaderIndex(List<RedLoaderVersion> versions)
+        {
+            if (_selectedRedLoader == null)
+                return 0;
+            var index = versions.FindIndex(v => v.version == _selectedRedLoader);
+            return index < 0 ? 0 : index;
+        }
+
         private Control RedLoaderRow()
         {
             var rl = _manifest.redloader;
+            var versions = RedLoaderVersions();
+            var selectedIndex = SelectedRedLoaderIndex(versions);
+            var selected = versions[selectedIndex];
+            var latest = versions[0];
             var status = _gameDir != null ? _redloaderStatus : null;
-            var buttons = new List<Control>();
+
+            var controls = new List<Control>();
+            if (status != null)
+            {
+                if (versions.Count > 1)
+                {
+                    var combo = new ComboBox
+                    {
+                        DropDownStyle = ComboBoxStyle.DropDownList,
+                        FlatStyle = FlatStyle.Flat,
+                        BackColor = Bark,
+                        ForeColor = Fog,
+                        Font = _buttonFont,
+                        Width = S(150),
+                        Margin = new Padding(S(6), S(2), 0, 0),
+                        Enabled = !_busy
+                    };
+                    for (var i = 0; i < versions.Count; i++)
+                        combo.Items.Add(i == 0 ? "Latest (" + versions[i].version + ")" : versions[i].version);
+                    combo.SelectedIndex = selectedIndex;
+                    combo.SelectedIndexChanged += (s, e) =>
+                    {
+                        _selectedRedLoader = combo.SelectedIndex <= 0 ? null : versions[combo.SelectedIndex].version;
+                        BeginInvoke((Action)Render);
+                    };
+                    controls.Add(combo);
+                }
+
+                Button button = null;
+                if (!status.Installed)
+                    button = MakeButton("Install RedLoader", Style.Primary, (s, e) => InstallRedLoader(selected));
+                else if (status.Version == selected.version)
+                    button = MakeButton("Reinstall", Style.Secondary, (s, e) => InstallRedLoader(selected));
+                else if (status.Version == null)
+                    button = MakeButton("Install " + selected.version, Style.Secondary, (s, e) => InstallRedLoader(selected));
+                else if (selectedIndex == 0)
+                    button = MakeButton("Update", Style.Primary, (s, e) => InstallRedLoader(selected));
+                else
+                    button = MakeButton("Install " + selected.version, Style.Primary, (s, e) => InstallRedLoader(selected));
+                button.Enabled = !_busy;
+                controls.Add(button);
+            }
+
+            var parts = new List<string> { "Latest " + latest.version };
             if (status != null)
             {
                 if (!status.Installed)
-                    buttons.Add(MakeButton("Install RedLoader", Style.Primary, (s, e) => InstallRedLoader()));
-                else if (!status.Current)
-                    buttons.Add(MakeButton(status.Version != null ? "Update" : "Reinstall " + rl.version,
-                        status.Version != null ? Style.Primary : Style.Secondary, (s, e) => InstallRedLoader()));
+                    parts.Add("Not installed");
+                else if (status.Version == null)
+                    parts.Add("Installed, version unknown");
+                else if (status.Version == latest.version)
+                    parts.Add("Installed, up to date");
+                else
+                    parts.Add("Installed " + status.Version);
             }
-            foreach (var b in buttons)
-                b.Enabled = !_busy;
-            var metaColor = status != null && status.Installed && !status.Current ? Flare : Lichen;
+            var metaColor = status != null && status.Installed && status.Version != latest.version ? Flare : Lichen;
             return new RowPanel("RedLoader", rl.repo,
-                "Every mod here runs on RedLoader. Install it before adding mods.",
-                VersionText(rl, status), metaColor, buttons,
+                "Every mod here runs on RedLoader. Install it before adding mods. Pick an older version only if a mod needs one.",
+                string.Join("     ", parts), metaColor, controls,
                 _rowTitleFont, _bodyFont, _metaFont, Fog, Lichen, BarkLine, _scale);
         }
 
@@ -543,14 +609,17 @@ namespace SotfModLoader
             }
         }
 
-        private async void InstallRedLoader()
+        private async void InstallRedLoader(RedLoaderVersion version)
         {
             var rl = _manifest.redloader;
             await Run(async progress =>
             {
-                await ModInstaller.Install(_gameDir, rl, progress);
-                ModInstaller.WriteRedLoaderVersion(_gameDir, rl.version);
-                return "RedLoader " + rl.version + " installed. Launch the game once and wait for the main menu so it can finish setting up.";
+                if (!string.IsNullOrEmpty(version.downloadUrl))
+                    await ModInstaller.InstallZip(_gameDir, version.downloadUrl, "RedLoader " + version.version, progress);
+                else
+                    await ModInstaller.Install(_gameDir, rl, progress);
+                ModInstaller.WriteRedLoaderVersion(_gameDir, version.version);
+                return "RedLoader " + version.version + " installed. Launch the game once and wait for the main menu so it can finish setting up.";
             });
         }
 

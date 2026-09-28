@@ -89,8 +89,8 @@ namespace SotfModLoader
             if (!string.IsNullOrEmpty(url))
                 _title.LinkClicked += (s, e) => MainForm.OpenUrl(url);
 
-            _desc = new Label { Text = description ?? string.Empty, Font = bodyFont, AutoSize = true, ForeColor = textColor, BackColor = Color.Transparent };
-            _meta = new Label { Text = meta ?? string.Empty, Font = metaFont, AutoSize = true, ForeColor = metaColor, BackColor = Color.Transparent };
+            _desc = new Label { Text = description ?? string.Empty, Font = bodyFont, AutoSize = false, ForeColor = textColor, BackColor = Color.Transparent };
+            _meta = new Label { Text = meta ?? string.Empty, Font = metaFont, AutoSize = false, ForeColor = metaColor, BackColor = Color.Transparent };
 
             _actions = new FlowLayoutPanel
             {
@@ -116,6 +116,13 @@ namespace SotfModLoader
             return (int)Math.Round(v * _scale);
         }
 
+        public static void Fit(Label label, int width)
+        {
+            var size = TextRenderer.MeasureText(label.Text.Length > 0 ? label.Text : " ", label.Font,
+                new Size(width, int.MaxValue), TextFormatFlags.WordBreak | TextFormatFlags.NoPadding);
+            label.Size = new Size(width, size.Height + 2);
+        }
+
         public void Arrange(int width)
         {
             Width = width;
@@ -124,11 +131,11 @@ namespace SotfModLoader
             var textWidth = Math.Max(S(160), width - actionsWidth - S(24));
 
             _title.Location = new Point(0, S(14));
-            _desc.MaximumSize = new Size(textWidth, 0);
+            Fit(_desc, textWidth);
             _desc.Location = new Point(0, _title.Bottom + S(2));
             _desc.Visible = _desc.Text.Length > 0;
             var y = _desc.Visible ? _desc.Bottom : _title.Bottom;
-            _meta.MaximumSize = new Size(textWidth, 0);
+            Fit(_meta, textWidth);
             _meta.Location = new Point(0, y + S(6));
 
             var bottom = Math.Max(_meta.Bottom, _actions.Controls.Count > 0 ? _actions.Bottom : 0);

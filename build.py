@@ -218,6 +218,31 @@ def build_redloader():
     }
 
 
+def build_redloader_versions(limit=10):
+    try:
+        releases = api(f"/repos/{REDLOADER_REPO}/releases?per_page=30")
+    except (urllib.error.URLError, OSError) as e:
+        print(f"warning: could not list RedLoader releases: {e}")
+        return []
+    versions = []
+    for release in releases:
+        if release.get("draft") or release.get("prerelease"):
+            continue
+        asset = zip_asset(release)
+        if not asset:
+            continue
+        versions.append({
+            "version": release["tag_name"],
+            "downloadUrl": asset["browser_download_url"],
+            "releaseUrl": release["html_url"],
+            "size": asset.get("size", 0),
+        })
+        if len(versions) >= limit:
+            break
+    print(f"RedLoader versions: {', '.join(v['version'] for v in versions)}")
+    return versions
+
+
 def build_app():
     try:
         releases = api(f"/repos/{APP_REPO}/releases?per_page=30")
@@ -285,6 +310,7 @@ def main():
         "app": build_app(),
         "bundle": build_bundle(redloader, mods),
         "redloader": redloader,
+        "redloaderVersions": build_redloader_versions(),
         "mods": mods,
     }
     (OUT / "manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
