@@ -6,10 +6,11 @@ Live site: https://justinoros.github.io/sotf-modloader/
 
 ## For players
 
-The site offers two ways to install:
+The site offers three ways to install:
 
 1. **Windows app (recommended).** Download `SotfModLoader.exe` from the site and run it. It finds your game through Steam, including installs inside Program Files, and installs RedLoader and mods with one click.
 2. **Zip download.** One zip with RedLoader and every mod. Extract it into your Sons of the Forest folder, the one that contains `SonsOfTheForest.exe`.
+3. **PowerShell scripts.** Each mod has a **Copy PowerShell install** button on the site. Paste the command into PowerShell to install that mod, plus RedLoader if needed. Run it again to update.
 
 Close the game before installing or updating.
 
