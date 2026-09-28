@@ -18,7 +18,6 @@ A GitHub Actions workflow runs every 6 hours, on every push to `main`, and on de
 
 - finds every repo owned by the account with the `sotf-mod` topic and mirrors the zip from its latest release
 - mirrors the latest RedLoader release
-- lists repos with the `sotf-tool` topic under Tools
 - publishes everything with a `manifest.json` to GitHub Pages
 
 The page writes files straight into the game folder using the browser's File System Access API.
@@ -26,7 +25,7 @@ The page writes files straight into the game folder using the browser's File Sys
 ## Setup
 
 1. Settings, Pages, Source: **GitHub Actions**.
-2. Add the `sotf-mod` topic to each mod repo and `sotf-tool` to each tool repo.
+2. Add the `sotf-mod` topic to each mod repo.
 3. Actions, **Build and deploy**, **Run workflow**.
 
 ## Mod release requirements

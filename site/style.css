@@ -255,10 +255,6 @@ button:disabled {
   cursor: not-allowed;
 }
 
-.tools .row {
-  grid-template-columns: minmax(0, 1fr);
-}
-
 .status {
   position: sticky;
   bottom: 0;

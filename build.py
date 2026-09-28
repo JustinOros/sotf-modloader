@@ -13,7 +13,6 @@ OWNER = os.environ.get("OWNER", "JustinOros")
 TOKEN = os.environ.get("GITHUB_TOKEN", "")
 REDLOADER_REPO = "ToniMacaroni/RedLoader"
 MOD_TOPIC = "sotf-mod"
-TOOL_TOPIC = "sotf-tool"
 ROOT = Path(__file__).resolve().parent
 SITE_SRC = ROOT / "site"
 OUT = ROOT / "_site"
@@ -188,47 +187,27 @@ def build_redloader():
     }
 
 
-def build_tool(repo):
-    if repo.get("homepage"):
-        url = repo["homepage"]
-    elif repo.get("has_pages"):
-        url = f"https://{OWNER.lower()}.github.io/{repo['name']}/"
-    else:
-        url = repo["html_url"]
-    print(f"tool {repo['name']}")
-    return {
-        "name": repo["name"],
-        "description": repo.get("description") or "",
-        "url": url,
-        "repo": repo["html_url"],
-    }
-
-
 def main():
     if OUT.exists():
         shutil.rmtree(OUT)
     shutil.copytree(SITE_SRC, OUT)
     mods = []
-    tools = []
     for repo in sorted(list_repos(), key=lambda r: r["name"].lower()):
         topics = repo.get("topics") or []
         if MOD_TOPIC in topics:
             entry = build_mod(repo)
             if entry:
                 mods.append(entry)
-        elif TOOL_TOPIC in topics:
-            tools.append(build_tool(repo))
     redloader = build_redloader()
     manifest = {
         "generated": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "owner": OWNER,
         "redloader": redloader,
         "mods": mods,
-        "tools": tools,
     }
     (OUT / "manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
     (OUT / ".nojekyll").write_text("", encoding="utf-8")
-    print(f"done: {len(mods)} mods, {len(tools)} tools")
+    print(f"done: {len(mods)} mods")
 
 
 if __name__ == "__main__":

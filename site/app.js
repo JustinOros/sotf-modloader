@@ -462,28 +462,6 @@ function renderMods() {
   node.replaceChildren(head, ...notes, el("ul", { class: "rows" }, mods.map(modRow)));
 }
 
-function renderTools() {
-  const node = $("tools");
-  const tools = state.manifest.tools || [];
-  node.hidden = !tools.length;
-  if (!tools.length) return;
-  node.classList.add("tools");
-  node.replaceChildren(
-    el("div", { class: "block-head" }, el("h2", { id: "tools-title" }, "Tools")),
-    el("ul", { class: "rows" },
-      tools.map((tool) =>
-        el("li", { class: "row" },
-          el("div", {},
-            el("h3", {}, el("a", { href: tool.url, target: "_blank", rel: "noopener" }, tool.name)),
-            tool.description ? el("p", { class: "desc" }, tool.description) : null,
-            el("p", { class: "meta" }, el("a", { href: tool.repo, target: "_blank", rel: "noopener" }, "Source")),
-          ),
-        ),
-      ),
-    ),
-  );
-}
-
 function renderFooter() {
   const { owner, generated, redloader } = state.manifest;
   const updated = generated ? new Date(generated).toLocaleString() : "unknown";
@@ -502,7 +480,6 @@ function render() {
   renderFolder();
   renderRedloader();
   renderMods();
-  renderTools();
   renderFooter();
 }
 
