@@ -48,7 +48,7 @@ function renderGet() {
   const options = [];
   if (app) {
     options.push((n) => optionCard(n, "Windows app",
-      "Finds your game automatically, even inside Program Files. Installs, updates and removes RedLoader and mods with one click.",
+      "Finds your game automatically. Installs, updates and removes RedLoader and mods with one click.",
       el("a", { class: "button primary", href: app.url }, `Download app (${formatSize(app.size)})`),
       `Version ${app.version}. If Windows shows a warning, click More info, then Run anyway.`,
       true));
