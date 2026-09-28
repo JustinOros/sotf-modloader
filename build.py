@@ -52,6 +52,20 @@ def latest_release(full_name):
         raise
 
 
+def total_downloads(full_name):
+    total = 0
+    page = 1
+    while True:
+        batch = api(f"/repos/{full_name}/releases?per_page=100&page={page}")
+        if not batch:
+            break
+        for release in batch:
+            for asset in release.get("assets", []):
+                total += asset.get("download_count", 0)
+        page += 1
+    return total
+
+
 def zip_asset(release):
     for asset in release.get("assets", []):
         if asset["name"].lower().endswith(".zip"):
@@ -138,7 +152,8 @@ def build_mod(repo):
         print(f"skip {repo['name']}: no DLL at the top of the zip")
         shutil.rmtree(OUT.joinpath(*base.parts), ignore_errors=True)
         return None
-    print(f"mod {mod_id} {version} ({len(files)} files)")
+    downloads = total_downloads(repo["full_name"])
+    print(f"mod {mod_id} {version} ({len(files)} files, {downloads} downloads)")
     return {
         "id": mod_id,
         "name": meta.get("name") or mod_id,
@@ -152,6 +167,7 @@ def build_mod(repo):
         "releaseUrl": release["html_url"],
         "downloadUrl": asset["browser_download_url"],
         "published": release.get("published_at"),
+        "downloads": downloads,
         "base": f"{base}/",
         "dll": dll,
         "manifestPath": manifest_path,

@@ -275,10 +275,15 @@ function installRedloader() {
   });
 }
 
+function countDownload(mod) {
+  if (mod.downloadUrl) fetch(mod.downloadUrl, { mode: "no-cors", cache: "no-store" }).catch(() => {});
+}
+
 function installMod(mod) {
   return run(async () => {
     const before = state.statuses.get(mod.id);
     await installPackage(mod, mod.roots);
+    countDownload(mod);
     const message = before && before.installed ? `${mod.name} updated to ${mod.version}.` : `${mod.name} ${mod.version} installed.`;
     setStatus(message, "ok");
   });
@@ -294,7 +299,10 @@ function removeMod(mod) {
 
 function updateAll(mods) {
   return run(async () => {
-    for (const mod of mods) await installPackage(mod, mod.roots);
+    for (const mod of mods) {
+      await installPackage(mod, mod.roots);
+      countDownload(mod);
+    }
     setStatus(`Updated ${mods.length} mod${mods.length === 1 ? "" : "s"}.`, "ok");
   });
 }
@@ -430,6 +438,7 @@ function modRow(mod) {
       mod.description ? el("p", { class: "desc" }, mod.description) : null,
       el("p", { class: "meta" },
         versionLine(mod, status),
+        typeof mod.downloads === "number" ? el("span", {}, `${mod.downloads.toLocaleString()} downloads`) : null,
         el("a", { href: mod.releaseUrl, target: "_blank", rel: "noopener" }, supportsFs ? "Release notes" : "Download"),
       ),
     ),
