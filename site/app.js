@@ -78,6 +78,40 @@ function renderRedloader() {
   );
 }
 
+async function copyText(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    const area = el("textarea", { readonly: true, style: "position:fixed;opacity:0" });
+    area.value = text;
+    document.body.append(area);
+    area.select();
+    let ok = false;
+    try {
+      ok = document.execCommand("copy");
+    } catch {}
+    area.remove();
+    return ok;
+  }
+}
+
+const COPY_ICON = '<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+
+function copyButton(command) {
+  const label = el("span", {}, "Copy PowerShell install");
+  const button = el("button", { type: "button", class: "copy", title: command }, label);
+  button.insertAdjacentHTML("afterbegin", COPY_ICON);
+  button.addEventListener("click", async () => {
+    const ok = await copyText(command);
+    label.textContent = ok ? "Copied" : "Copy failed";
+    setTimeout(() => {
+      label.textContent = "Copy PowerShell install";
+    }, 2000);
+  });
+  return button;
+}
+
 function modRow(mod) {
   return el("li", { class: "row" },
     el("div", {},
@@ -87,6 +121,7 @@ function modRow(mod) {
         el("span", {}, `Latest ${mod.version}`),
         typeof mod.downloads === "number" ? el("span", {}, `${mod.downloads.toLocaleString()} downloads`) : null,
         link(mod.releaseUrl, "Release notes"),
+        mod.installCommand ? copyButton(mod.installCommand) : null,
       ),
     ),
   );

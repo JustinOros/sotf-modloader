@@ -167,6 +167,22 @@ a.button.secondary:hover {
   line-height: 1.1;
 }
 
+button.copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--flare);
+  font: inherit;
+  cursor: pointer;
+}
+
+button.copy:hover {
+  color: var(--fog);
+}
+
 .block-note {
   margin: 1rem 0 0;
   color: var(--lichen);

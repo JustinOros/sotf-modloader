@@ -69,6 +69,16 @@ def total_downloads(full_name):
     return total
 
 
+def install_command(repo):
+    branch = repo.get("default_branch") or "main"
+    url = f"https://raw.githubusercontent.com/{repo['full_name']}/{branch}/Install.ps1"
+    try:
+        request(url, accept="text/plain")
+    except (urllib.error.URLError, OSError):
+        return None
+    return f"irm {url} | iex"
+
+
 def zip_asset(release):
     for asset in release.get("assets", []):
         if asset["name"].lower().endswith(".zip"):
@@ -156,7 +166,8 @@ def build_mod(repo):
         shutil.rmtree(OUT.joinpath(*base.parts), ignore_errors=True)
         return None
     downloads = total_downloads(repo["full_name"])
-    print(f"mod {mod_id} {version} ({len(files)} files, {downloads} downloads)")
+    command = install_command(repo)
+    print(f"mod {mod_id} {version} ({len(files)} files, {downloads} downloads, installer {'yes' if command else 'no'})")
     return {
         "id": mod_id,
         "name": meta.get("name") or mod_id,
@@ -171,6 +182,7 @@ def build_mod(repo):
         "downloadUrl": asset["browser_download_url"],
         "published": release.get("published_at"),
         "downloads": downloads,
+        "installCommand": command,
         "base": f"{base}/",
         "dll": dll,
         "manifestPath": manifest_path,
@@ -254,6 +266,11 @@ def main():
     if OUT.exists():
         shutil.rmtree(OUT)
     shutil.copytree(SITE_SRC, OUT)
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
+    index = OUT / "index.html"
+    html = index.read_text(encoding="utf-8")
+    html = html.replace('src="app.js"', f'src="app.js?v={stamp}"').replace('href="style.css"', f'href="style.css?v={stamp}"')
+    index.write_text(html, encoding="utf-8")
     mods = []
     for repo in sorted(list_repos(), key=lambda r: r["name"].lower()):
         topics = repo.get("topics") or []
