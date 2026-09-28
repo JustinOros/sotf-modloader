@@ -1,2 +1,5 @@
 _site/
 __pycache__/
+app/bin/
+app/obj/
+out/

@@ -13,6 +13,9 @@ OWNER = os.environ.get("OWNER", "JustinOros")
 TOKEN = os.environ.get("GITHUB_TOKEN", "")
 REDLOADER_REPO = "ToniMacaroni/RedLoader"
 MOD_TOPIC = "sotf-mod"
+APP_REPO = os.environ.get("GITHUB_REPOSITORY") or f"{OWNER}/sotf-modloader"
+APP_TAG_PREFIX = "app-v"
+BUNDLE_NAME = "sotf-mods.zip"
 ROOT = Path(__file__).resolve().parent
 SITE_SRC = ROOT / "site"
 OUT = ROOT / "_site"
@@ -203,6 +206,50 @@ def build_redloader():
     }
 
 
+def build_app():
+    try:
+        releases = api(f"/repos/{APP_REPO}/releases?per_page=30")
+    except urllib.error.HTTPError as e:
+        print(f"warning: could not list app releases: {e}")
+        return None
+    for release in releases:
+        tag = release.get("tag_name", "")
+        if release.get("draft") or release.get("prerelease") or not tag.startswith(APP_TAG_PREFIX):
+            continue
+        for asset in release.get("assets", []):
+            if asset["name"].lower().endswith(".exe"):
+                print(f"app {tag}")
+                return {
+                    "version": tag[len(APP_TAG_PREFIX):],
+                    "url": asset["browser_download_url"],
+                    "size": asset.get("size", 0),
+                    "releaseUrl": release["html_url"],
+                }
+    print("warning: no app release found")
+    return None
+
+
+def build_bundle(redloader, mods):
+    target = OUT / "downloads" / BUNDLE_NAME
+    target.parent.mkdir(parents=True, exist_ok=True)
+    seen = set()
+    packages = ([redloader] if redloader else []) + mods
+    with zipfile.ZipFile(target, "w", zipfile.ZIP_DEFLATED) as zf:
+        for pkg in packages:
+            src = OUT.joinpath(*PurePosixPath(pkg["base"]).parts)
+            for f in pkg["files"]:
+                key = f["path"].lower()
+                if key in seen:
+                    continue
+                seen.add(key)
+                zf.write(src.joinpath(*PurePosixPath(f["path"]).parts), f["path"])
+        if redloader:
+            zf.writestr("sotf-modloader.json", json.dumps({"redloader": redloader["version"]}, indent=2))
+    size = target.stat().st_size
+    print(f"bundle {BUNDLE_NAME} ({size} bytes)")
+    return {"url": f"downloads/{BUNDLE_NAME}", "size": size}
+
+
 def main():
     if OUT.exists():
         shutil.rmtree(OUT)
@@ -218,6 +265,8 @@ def main():
     manifest = {
         "generated": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "owner": OWNER,
+        "app": build_app(),
+        "bundle": build_bundle(redloader, mods),
         "redloader": redloader,
         "mods": mods,
     }

@@ -1,0 +1,66 @@
+name: Build Windows app
+
+on:
+  push:
+    tags: ["app-v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  app:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Build
+        shell: pwsh
+        run: |
+          $version = "${{ github.ref_name }}" -replace '^app-v', ''
+          if ($version -notmatch '^\d+\.\d+\.\d+$') { $version = '0.0.0' }
+          dotnet build app/SotfModLoader.csproj -c Release -p:Version=$version -o out
+          if (-not (Test-Path out/SotfModLoader.exe)) { throw 'The build did not produce SotfModLoader.exe' }
+
+      - id: upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: SotfModLoader
+          path: out/SotfModLoader.exe
+          if-no-files-found: error
+
+      - name: Sign with SignPath
+        if: ${{ vars.SIGNPATH_ORGANIZATION_ID != '' }}
+        uses: signpath/github-action-submit-signing-request@v2
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG }}
+          signing-policy-slug: ${{ vars.SIGNPATH_POLICY_SLUG }}
+          github-artifact-id: ${{ steps.upload.outputs.artifact-id }}
+          wait-for-completion: true
+          wait-for-completion-timeout-in-seconds: 18000
+          output-artifact-directory: signed
+
+      - name: Collect
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force release | Out-Null
+          $source = if (Test-Path signed/SotfModLoader.exe) { 'signed/SotfModLoader.exe' } else { 'out/SotfModLoader.exe' }
+          Copy-Item $source release/SotfModLoader.exe
+          $signature = Get-AuthenticodeSignature release/SotfModLoader.exe
+          Write-Host "Signature: $($signature.Status)"
+
+      - name: Publish release
+        if: startsWith(github.ref, 'refs/tags/app-v')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ github.ref_name }}" release/SotfModLoader.exe -R "${{ github.repository }}" --title "Mod loader app ${{ github.ref_name }}" --notes "Windows app for installing, updating and removing Sons of the Forest mods."
+          gh workflow run pages.yml -R "${{ github.repository }}" --ref main

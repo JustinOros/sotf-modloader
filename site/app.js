@@ -336,6 +336,39 @@ function versionLine(pkg, status) {
   return items;
 }
 
+function formatSize(bytes) {
+  if (!bytes) return "";
+  if (bytes >= 1048576) return `${(bytes / 1048576).toFixed(1)} MB`;
+  return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+}
+
+function renderGet() {
+  const node = $("get");
+  const { app, bundle } = state.manifest;
+  const cards = [];
+  if (app) {
+    cards.push(
+      el("div", { class: "get-card" },
+        el("h2", {}, "Windows app"),
+        el("p", {}, "Finds your game automatically, even inside Program Files, and installs RedLoader and mods with one click."),
+        el("a", { class: "button primary", href: app.url }, `Download the app (${formatSize(app.size)})`),
+        el("p", { class: "get-note" }, `Version ${app.version}. If Windows shows a warning, click More info, then Run anyway.`),
+      ),
+    );
+  }
+  if (bundle) {
+    cards.push(
+      el("div", { class: "get-card" },
+        el("h2", {}, "Zip download"),
+        el("p", {}, "RedLoader and every mod in one zip. Extract it into your Sons of the Forest folder, the one that contains SonsOfTheForest.exe."),
+        el("a", { class: "button secondary", href: bundle.url, download: "sotf-mods.zip" }, `Download zip (${formatSize(bundle.size)})`),
+      ),
+    );
+  }
+  node.hidden = !cards.length;
+  node.replaceChildren(...cards);
+}
+
 function renderFolder() {
   const node = $("folder");
   node.replaceChildren();
@@ -344,8 +377,8 @@ function renderFolder() {
   if (!supportsFs) {
     node.append(
       el("div", { class: "folder-text" },
-        el("p", { class: "folder-name" }, "This browser can't install mods"),
-        el("p", { class: "folder-help" }, "Open this page in Chrome or Edge on Windows to install mods with one click. You can still download each mod from its release page below."),
+        el("p", { class: "folder-name" }, "Install from this page"),
+        el("p", { class: "folder-help" }, "This browser can't write to your game folder. Use the Windows app or the zip download above."),
       ),
     );
     return;
@@ -378,15 +411,13 @@ function renderFolder() {
 
   node.append(
     el("div", { class: "folder-text" },
-      el("p", { class: "folder-name" }, "Choose your game folder"),
+      el("p", { class: "folder-name" }, "Install from this page"),
       el("p", { class: "folder-help" },
         state.folderError ? `${state.folderError} ` : "",
-        "On Steam it's usually ",
-        el("code", {}, "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Sons Of The Forest"),
-        ". In Steam you can find it with Manage, Browse local files.",
+        "Chrome and Edge can't open folders inside Program Files, which is where Steam installs games by default. If Chrome says the folder contains system files, use the Windows app instead.",
       ),
     ),
-    el("button", { class: "primary", disabled: state.busy, onclick: chooseFolder }, "Choose game folder"),
+    el("button", { class: "secondary", disabled: state.busy, onclick: chooseFolder }, "Choose game folder"),
   );
 }
 
@@ -486,6 +517,7 @@ function renderFooter() {
 
 function render() {
   if (!state.manifest) return;
+  renderGet();
   renderFolder();
   renderRedloader();
   renderMods();

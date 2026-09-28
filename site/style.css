@@ -74,13 +74,84 @@ a:hover {
   font-size: 1.15rem;
 }
 
+.get {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 1rem;
+  margin-top: 2.75rem;
+}
+
+.get-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 1.35rem 1.5rem 1.4rem;
+  background: var(--bark);
+  border: 1px solid var(--bark-line);
+  border-radius: 6px;
+}
+
+.get-card:first-child {
+  border-top: 5px solid var(--flare);
+}
+
+.get-card h2 {
+  margin: 0;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 1.75rem;
+  line-height: 1.1;
+}
+
+.get-card p {
+  margin: 0.4rem 0 1.1rem;
+  color: var(--lichen);
+}
+
+.get-card .get-note {
+  margin: 0.8rem 0 0;
+  font-size: 0.875rem;
+}
+
+a.button {
+  display: inline-block;
+  margin-top: auto;
+  padding: 0.6rem 1.1rem;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  line-height: 1.2;
+  text-decoration: none;
+}
+
+a.button.primary {
+  background: var(--flare);
+  color: var(--flare-ink);
+}
+
+a.button.primary:hover {
+  background: var(--flare-hover);
+  color: var(--flare-ink);
+}
+
+a.button.secondary {
+  color: var(--fog);
+  border-color: var(--bark-line);
+}
+
+a.button.secondary:hover {
+  border-color: var(--lichen);
+  color: var(--fog);
+}
+
 .folder {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 1rem 1.5rem;
-  margin-top: 2.75rem;
+  margin-top: 1rem;
   padding: 1.25rem 1.5rem;
   background: var(--bark);
   border: 1px solid var(--bark-line);
