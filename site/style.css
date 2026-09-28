@@ -145,54 +145,6 @@ a.button.secondary:hover {
   color: var(--fog);
 }
 
-.folder {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem 1.5rem;
-  margin-top: 1rem;
-  padding: 1.25rem 1.5rem;
-  background: var(--bark);
-  border: 1px solid var(--bark-line);
-  border-left: 5px solid var(--bark-line);
-  border-radius: 6px;
-}
-
-.folder[data-state="connected"] {
-  border-left-color: var(--flare);
-}
-
-.folder[data-state="error"] {
-  border-left-color: var(--ember);
-}
-
-.folder-text {
-  flex: 1 1 22rem;
-  min-width: 0;
-}
-
-.folder-name {
-  margin: 0;
-  font-family: var(--display);
-  font-weight: 600;
-  font-size: 1.5rem;
-  line-height: 1.15;
-  overflow-wrap: anywhere;
-}
-
-.folder-help {
-  margin: 0.25rem 0 0;
-  color: var(--lichen);
-  font-size: 0.95rem;
-}
-
-.folder-help code {
-  color: var(--fog);
-  font-size: 0.9em;
-  overflow-wrap: anywhere;
-}
-
 .block {
   margin-top: 3.25rem;
 }
@@ -266,66 +218,6 @@ a.button.secondary:hover {
   font-size: 0.9rem;
 }
 
-.meta .state-current {
-  color: var(--fog);
-}
-
-.meta .state-update {
-  color: var(--flare);
-  font-weight: 600;
-}
-
-.actions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 0.5rem;
-}
-
-button {
-  padding: 0.55rem 1.05rem;
-  border: 1px solid transparent;
-  border-radius: 4px;
-  font: inherit;
-  font-weight: 600;
-  font-size: 0.95rem;
-  line-height: 1.2;
-  cursor: pointer;
-}
-
-button.primary {
-  background: var(--flare);
-  color: var(--flare-ink);
-}
-
-button.primary:hover:not(:disabled) {
-  background: var(--flare-hover);
-}
-
-button.secondary {
-  background: transparent;
-  color: var(--fog);
-  border-color: var(--bark-line);
-}
-
-button.secondary:hover:not(:disabled) {
-  border-color: var(--lichen);
-}
-
-button.danger {
-  background: transparent;
-  color: var(--ember);
-}
-
-button.danger:hover:not(:disabled) {
-  border-color: var(--ember);
-}
-
-button:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-
 .status {
   position: sticky;
   bottom: 0;
@@ -366,7 +258,4 @@ button:disabled {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .actions {
-    justify-content: flex-start;
-  }
 }
