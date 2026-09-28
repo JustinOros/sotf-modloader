@@ -52,7 +52,7 @@ a:hover {
 }
 
 .page {
-  max-width: 54rem;
+  max-width: 62rem;
   margin: 0 auto;
   padding: clamp(2.5rem, 7vw, 5rem) clamp(1.25rem, 4vw, 2.5rem) 2rem;
 }
@@ -74,32 +74,44 @@ a:hover {
   font-size: 1.15rem;
 }
 
-.get {
+.get-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
   gap: 1rem;
-  margin-top: 2.75rem;
+  margin-top: 1.25rem;
 }
 
 .get-card {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  padding: 1.35rem 1.5rem 1.4rem;
+  padding: 1.25rem 1.35rem 1.35rem;
   background: var(--bark);
   border: 1px solid var(--bark-line);
+  border-top: 5px solid var(--bark-line);
   border-radius: 6px;
 }
 
-.get-card:first-child {
-  border-top: 5px solid var(--flare);
+.get-card.recommended {
+  border-top-color: var(--flare);
 }
 
-.get-card h2 {
+.get-card .get-option {
   margin: 0;
+  color: var(--lichen);
+  font-size: 0.9rem;
+}
+
+.get-card.recommended .get-option {
+  color: var(--flare);
+  font-weight: 600;
+}
+
+.get-card h3 {
+  margin: 0.15rem 0 0;
   font-family: var(--display);
   font-weight: 700;
-  font-size: 1.75rem;
+  font-size: 1.65rem;
   line-height: 1.1;
 }
 
@@ -123,6 +135,7 @@ a.button {
   font-size: 0.95rem;
   line-height: 1.2;
   text-decoration: none;
+  white-space: nowrap;
 }
 
 a.button.primary {

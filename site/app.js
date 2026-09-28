@@ -32,31 +32,44 @@ function link(href, text) {
   return el("a", { href, target: "_blank", rel: "noopener" }, text);
 }
 
+function optionCard(number, title, text, action, note, recommended) {
+  return el("div", { class: recommended ? "get-card recommended" : "get-card" },
+    el("p", { class: "get-option" }, recommended ? `Option ${number}, recommended` : `Option ${number}`),
+    el("h3", {}, title),
+    el("p", {}, text),
+    action,
+    note ? el("p", { class: "get-note" }, note) : null,
+  );
+}
+
 function renderGet() {
   const node = $("get");
-  const { app, bundle } = state.manifest;
-  const cards = [];
+  const { app, bundle, mods } = state.manifest;
+  const options = [];
   if (app) {
-    cards.push(
-      el("div", { class: "get-card" },
-        el("h2", {}, "Windows app"),
-        el("p", {}, "Finds your game automatically, even inside Program Files, and installs RedLoader and mods with one click."),
-        el("a", { class: "button primary", href: app.url }, `Download the app (${formatSize(app.size)})`),
-        el("p", { class: "get-note" }, `Version ${app.version}. If Windows shows a warning, click More info, then Run anyway.`),
-      ),
-    );
+    options.push((n) => optionCard(n, "Windows app",
+      "Finds your game automatically, even inside Program Files. Installs, updates and removes RedLoader and mods with one click.",
+      el("a", { class: "button primary", href: app.url }, `Download app (${formatSize(app.size)})`),
+      `Version ${app.version}. If Windows shows a warning, click More info, then Run anyway.`,
+      true));
   }
   if (bundle) {
-    cards.push(
-      el("div", { class: "get-card" },
-        el("h2", {}, "Zip download"),
-        el("p", {}, "RedLoader and every mod in one zip. Extract it into your Sons of the Forest folder, the one that contains SonsOfTheForest.exe."),
-        el("a", { class: "button secondary", href: bundle.url, download: "sotf-mods.zip" }, `Download zip (${formatSize(bundle.size)})`),
-      ),
-    );
+    options.push((n) => optionCard(n, "Zip download",
+      "RedLoader and every mod in one zip. Extract it into your game folder, the one with SonsOfTheForest.exe.",
+      el("a", { class: "button secondary", href: bundle.url, download: "sotf-mods.zip" }, `Download zip (${formatSize(bundle.size)})`),
+      "Download it again to update. Remove mods by deleting them from the Mods folder."));
   }
-  node.hidden = !cards.length;
-  node.replaceChildren(...cards);
+  if ((mods || []).some((mod) => mod.installCommand)) {
+    options.push((n) => optionCard(n, "PowerShell scripts",
+      "Install one mod at a time. Copy a mod's command from the list below and paste it into PowerShell.",
+      el("a", { class: "button secondary", href: "#mods" }, "Go to the mod list"),
+      "Installs RedLoader too if needed. Run the command again to update."));
+  }
+  node.hidden = !options.length;
+  node.replaceChildren(
+    el("div", { class: "block-head" }, el("h2", { id: "get-title" }, "Choose how to install")),
+    el("div", { class: "get-grid" }, options.map((make, i) => make(i + 1))),
+  );
 }
 
 function renderRedloader() {
@@ -70,7 +83,7 @@ function renderRedloader() {
       el("li", { class: "row" },
         el("div", {},
           el("h3", {}, link(rl.repo, "RedLoader")),
-          el("p", { class: "desc" }, "Every mod on this page runs on RedLoader. The app and the zip include it."),
+          el("p", { class: "desc" }, "Every mod on this page runs on RedLoader. All three install options include it."),
           el("p", { class: "meta" }, el("span", {}, `Latest ${rl.version}`), link(rl.releaseUrl, "Release notes")),
         ),
       ),
