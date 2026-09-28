@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sons of the Forest Mod Loader</title>
+<meta name="description" content="Install, update and remove Sons of the Forest mods straight into your game folder.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🪓</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600;700&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main class="page">
+  <header class="masthead">
+    <h1>Sons of the Forest mod loader</h1>
+    <p class="lede">Pick your game folder once, then install, update and remove mods with one click.</p>
+  </header>
+  <section id="folder" class="folder" aria-label="Game folder"></section>
+  <section id="redloader" class="block" aria-labelledby="redloader-title" hidden></section>
+  <section id="mods" class="block" aria-labelledby="mods-title"></section>
+  <section id="tools" class="block" aria-labelledby="tools-title" hidden></section>
+  <p id="status" class="status" role="status" aria-live="polite"></p>
+  <footer id="footer" class="footer"></footer>
+</main>
+<script type="module" src="app.js"></script>
+</body>
+</html>
