@@ -34,7 +34,7 @@ function link(href, text) {
 
 function optionCard(number, title, text, action, note, recommended) {
   return el("div", { class: recommended ? "get-card recommended" : "get-card" },
-    el("p", { class: "get-option" }, recommended ? `Option ${number}, recommended` : `Option ${number}`),
+    el("p", { class: "get-option" }, recommended ? `Option ${number} (Recommended)` : `Option ${number}`),
     el("h3", {}, title),
     el("p", {}, text),
     action,
